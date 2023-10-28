@@ -4,6 +4,13 @@
 #include "octree_node.hh"
 
 namespace oLife {
+	template <typename T>
+	void fast_remove(std::vector<T> &vector, std::size_t index) {
+		*(vector.begin() + index) = std::move(vector.back());
+
+		vector.pop_back();
+	};
+
 	bool OctreeEntity::operator==(const OctreeEntity &other) const {
 		return x == other.x && y == other.y && z == other.z;
 	}
@@ -36,6 +43,13 @@ namespace oLife {
 	}
 
 	void OctreeNode::insert(OctreeEntity *entity) {
+		if (
+			std::abs(entity->x) > octree->w >> 1 &&
+			std::abs(entity->y) > octree->h >> 1 &&
+			std::abs(entity->z) > octree->l >> 1
+		)
+			scale(1.25);
+
 		if (children.size() != 0) {
 			std::uint32_t index = 0;
 
@@ -50,7 +64,7 @@ namespace oLife {
 
 		entities.push_back(entity);
 
-		if (entities.size() == (w() * h() * l()) >> 7 && w() && h() && l()) {
+		if (entities.size() == std::max((w() * h() * l()) >> 7, 16u) && w() && h() && l()) {
 			for (std::size_t i = 0; i < 8; i++)
 				children[i] = new OctreeNode(octree, i, level + 1);
 
@@ -83,7 +97,11 @@ namespace oLife {
 			child->update();
 		}
 
-		// Unfinished
+		for (std::size_t i = 0; i < entities.size(); i++) {
+			fast_remove(entities, i);
+
+			octree->root->insert(entities[i]);
+		}
 	}
 
 	OctreeEntity *OctreeNode::retrieve(

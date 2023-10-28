@@ -7,6 +7,9 @@
 namespace oLife {
 	class Octree;
 
+	template <typename T>
+	void fast_remove(std::vector<T> &vector, std::size_t index);
+
 	struct OctreeEntity {
 		std::int32_t x, y, z;
 		std::uint8_t cell_state;
