@@ -63,6 +63,8 @@ namespace oLife {
 
 				children[index]->insert(entity);
 			}
+
+			children.clear();
 		}
 	}
 
