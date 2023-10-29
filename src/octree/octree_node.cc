@@ -130,12 +130,9 @@ namespace oLife {
 			std::back_inserter(results),
 			[&](OctreeEntity *entity) -> bool {
 				return
-					entity->x >= x_pos - w / 2 &&
-					entity->x <= x_pos + w / 2 &&
-					entity->y >= y_pos - h / 2 &&
-					entity->y <= y_pos + h / 2 &&
-					entity->z >= z_pos - l / 2 &&
-					entity->z <= z_pos + l / 2;
+					std::abs(entity->x - x_pos) <= w / 2 &&
+					std::abs(entity->y - y_pos) <= h / 2 &&
+					std::abs(entity->z - z_pos) <= l / 2;
 			}
 		);
 
