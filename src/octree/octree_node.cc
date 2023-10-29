@@ -1,4 +1,4 @@
-#include <cmath>
+#include <algorithm>
 
 #include "octree.hh"
 #include "octree_node.hh"
@@ -6,7 +6,7 @@
 namespace oLife {
 	template <typename T>
 	void fast_remove(std::vector<T> &vector, std::size_t index) {
-		*(vector.begin() + index) = std::move(vector.back());
+		vector[index] = std::move(vector.back());
 
 		vector.pop_back();
 	};
@@ -48,7 +48,7 @@ namespace oLife {
 			std::abs(entity->y) > octree->h >> 1 &&
 			std::abs(entity->z) > octree->l >> 1
 		)
-			scale(1.25);
+			scale(2);
 
 		if (children.size() != 0) {
 			std::uint32_t index = 0;
@@ -82,7 +82,7 @@ namespace oLife {
 		}
 	}
 
-	void OctreeNode::scale(float scalar) {
+	void OctreeNode::scale(std::uint32_t scalar) {
 		octree->w *= scalar;
 		octree->h *= scalar;
 		octree->l *= scalar;
@@ -104,15 +104,41 @@ namespace oLife {
 		}
 	}
 
-	OctreeEntity *OctreeNode::retrieve(
+	std::vector<OctreeEntity *> OctreeNode::query(
 		std::uint32_t w,
 		std::uint32_t h,
 		std::uint32_t l,
-		std::int32_t x,
-		std::int32_t y,
-		std::int32_t z
+		std::int32_t x_pos,
+		std::int32_t y_pos,
+		std::int32_t z_pos
 	) {
-		// Unfinished
+		if (children.size() != 0) {
+			std::uint32_t index = 0;
+
+			if (x_pos >= x()) index |= 1;
+			if (y_pos >= y()) index |= 2;
+			if (z_pos >= z()) index |= 4;
+
+			return children[index]->query(w, h, l, x_pos, y_pos, z_pos);
+		}
+
+		std::vector<OctreeEntity *> results;
+
+		std::copy_if(
+			entities.begin(),
+			entities.end(),
+			std::back_inserter(results), [&](OctreeEntity *entity) -> bool {
+				return
+					entity->x >= x_pos - w / 2 &&
+					entity->x <= x_pos + w / 2 &&
+					entity->y >= y_pos - h / 2 &&
+					entity->y <= y_pos + h / 2 &&
+					entity->z >= z_pos - l / 2 &&
+					entity->z <= z_pos + l / 2;
+			}
+		);
+
+		return results;
 	}
 
 	void OctreeNode::empty() {
