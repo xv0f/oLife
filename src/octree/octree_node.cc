@@ -98,9 +98,9 @@ namespace oLife {
 		}
 
 		for (std::size_t i = 0; i < entities.size(); i++) {
-			fast_remove(entities, i);
-
 			octree->root->insert(entities[i]);
+
+			fast_remove(entities, i);
 		}
 	}
 
@@ -127,7 +127,8 @@ namespace oLife {
 		std::copy_if(
 			entities.begin(),
 			entities.end(),
-			std::back_inserter(results), [&](OctreeEntity *entity) -> bool {
+			std::back_inserter(results),
+			[&](OctreeEntity *entity) -> bool {
 				return
 					entity->x >= x_pos - w / 2 &&
 					entity->x <= x_pos + w / 2 &&
@@ -152,6 +153,10 @@ namespace oLife {
 	}
 
 	void OctreeNode::clear() {
+		for (OctreeNode *child : children) {
+			delete child;
+		}
+
 		entities.clear();
 		children.clear();
 	}
