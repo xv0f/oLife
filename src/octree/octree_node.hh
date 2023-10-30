@@ -29,6 +29,7 @@ namespace oLife {
 
 		public:
 			OctreeNode(Octree *octree, std::uint32_t index, std::uint32_t level = 0);
+			~OctreeNode();
 
 			std::int32_t x();
 			std::int32_t y();
