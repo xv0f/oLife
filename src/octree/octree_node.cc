@@ -144,14 +144,14 @@ namespace oLife {
 				child->empty();
 		}
 
-		for (std::size_t i = 0; i < 8; i++) {
-			if (children[i] != nullptr) {
-				if (children[i]->children.size() == 0) {
-					fast_erase(children, i);
+		for (OctreeNode *child : children) {
+			if (child != nullptr) {
+				if (child->children.size() == 0) {
+					delete child;
 					continue;
 				}
 
-				children[i]->empty();
+				child->empty();
 			}
 		}
 
