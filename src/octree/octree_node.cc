@@ -18,6 +18,11 @@ namespace oLife {
 	OctreeNode::OctreeNode(Octree *octree, std::uint32_t index, std::uint32_t level) :
 		octree(octree), level(level), index(index) {}
 
+	OctreeNode::~OctreeNode() {
+		for (OctreeNode *child : children)
+			delete child;
+	}
+
 	std::int32_t OctreeNode::x() {
 		return level != 0 ? w() * (index & 1 ? -1 : 1) : 0;
 	}
