@@ -3,31 +3,31 @@
 #include "octree.hh"
 #include "octree_node.hh"
 
+template <typename T>
+void fast_erase(std::vector<T> &vector, std::size_t index) {
+	vector[index] = std::move(vector.back());
+
+	vector.pop_back();
+};
+
 namespace oLife {
-	template <typename T>
-	void fast_remove(std::vector<T> &vector, std::size_t index) {
-		vector[index] = std::move(vector.back());
-
-		vector.pop_back();
-	};
-
 	bool OctreeEntity::operator==(const OctreeEntity &other) const {
 		return x == other.x && y == other.y && z == other.z;
 	}
 
 	OctreeNode::OctreeNode(Octree *octree, std::uint32_t index, std::uint32_t level) :
-		octree(octree), index(index), level(level) {}
+		octree(octree), level(level), index(index) {}
 
 	std::int32_t OctreeNode::x() {
-		return w() * (index & 1 ? -1 : 1);
+		return level != 0 ? w() * (index & 1 ? -1 : 1) : 0;
 	}
 
 	std::int32_t OctreeNode::y() {
-		return h() * ((index >> 1) & 1 ? -1 : 1);
+		return level != 0 ? h() * ((index >> 1) & 1 ? -1 : 1) : 0;
 	}
 
 	std::int32_t OctreeNode::z() {
-		return l() * (index >> 2 ? -1 : 1);
+		return level != 0 ? l() * (index >> 2 ? -1 : 1) : 0;
 	}
 
 	std::uint32_t OctreeNode::w() {
@@ -51,13 +51,13 @@ namespace oLife {
 			scale(2);
 
 		if (children.size() != 0) {
-			std::uint32_t index = 0;
+			std::uint32_t child_index = 0;
 
-			if (entity->x >= x()) index |= 1;
-			if (entity->y >= y()) index |= 2;
-			if (entity->z >= z()) index |= 4;
+			if (entity->x >= x()) child_index |= 1;
+			if (entity->y >= y()) child_index |= 2;
+			if (entity->z >= z()) child_index |= 4;
 
-			children[index]->insert(entity);
+			children[child_index]->insert(entity);
 
 			return;
 		}
@@ -66,16 +66,16 @@ namespace oLife {
 
 		if (entities.size() == std::max((w() * h() * l()) >> 7, 16u) && w() && h() && l()) {
 			for (std::size_t i = 0; i < 8; i++)
-				children[i] = new OctreeNode(octree, i, level + 1);
-
+				children.push_back(new OctreeNode(octree, i, level + 1));
+			
 			for (OctreeEntity *entity : entities) {
-				std::uint32_t index = 0;
+				std::uint32_t child_index = 0;
 
-				if (entity->x >= x()) index |= 1;
-				if (entity->y >= y()) index |= 2;
-				if (entity->z >= z()) index |= 4;
+				if (entity->x >= x()) child_index |= 1;
+				if (entity->y >= y()) child_index |= 2;
+				if (entity->z >= z()) child_index |= 4;
 
-				children[index]->insert(entity);
+				children[child_index]->insert(entity);
 			}
 
 			children.clear();
@@ -92,15 +92,14 @@ namespace oLife {
 
 	void OctreeNode::update() {
 		for (OctreeNode *child : children) {
-			if (child == nullptr) continue;
-
-			child->update();
+			if (child != nullptr)
+				child->update();
 		}
 
 		for (std::size_t i = 0; i < entities.size(); i++) {
 			octree->root->insert(entities[i]);
 
-			fast_remove(entities, i);
+			fast_erase(entities, i);
 		}
 	}
 
@@ -141,18 +140,27 @@ namespace oLife {
 
 	void OctreeNode::empty() {
 		for (OctreeNode *child : children) {
-			if (child == nullptr) continue;
+			if (child != nullptr)
+				child->empty();
+		}
 
-			child->empty();
+		for (std::size_t i = 0; i < 8; i++) {
+			if (children[i] != nullptr) {
+				if (children[i]->children.size() == 0) {
+					fast_erase(children, i);
+					continue;
+				}
+
+				children[i]->empty();
+			}
 		}
 
 		entities.clear();
 	}
 
 	void OctreeNode::clear() {
-		for (OctreeNode *child : children) {
+		for (OctreeNode *child : children)
 			delete child;
-		}
 
 		entities.clear();
 		children.clear();

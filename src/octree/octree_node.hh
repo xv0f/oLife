@@ -4,11 +4,11 @@
 #include <cstdint>
 #include <vector>
 
+template <typename T>
+void fast_erase(std::vector<T> &vector, std::size_t index);
+
 namespace oLife {
 	class Octree;
-
-	template <typename T>
-	void fast_remove(std::vector<T> &vector, std::size_t index);
 
 	struct OctreeEntity {
 		std::int32_t x, y, z;
@@ -40,16 +40,16 @@ namespace oLife {
 
 			void insert(OctreeEntity *entity);
 
-			OctreeEntity *retrieve(
+			std::vector<OctreeEntity *> query(
 				std::uint32_t w,
 				std::uint32_t h,
 				std::uint32_t l,
-				std::int32_t x,
-				std::int32_t y,
-				std::int32_t z
+				std::int32_t x_pos,
+				std::int32_t y_pos,
+				std::int32_t z_pos
 			);
 
-			void scale(float scalar);
+			void scale(std::uint32_t scalar);
 
 			void update();
 
