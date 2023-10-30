@@ -159,10 +159,9 @@ namespace oLife {
 	}
 
 	void OctreeNode::clear() {
-		for (OctreeNode *child : children)
+		for (OctreeNode *child : octree->root.children)
 			delete child;
 
-		entities.clear();
-		children.clear();
+		octree->root.children.clear();
 	}
 }
