@@ -1,8 +1,5 @@
-CXX := clang++
-
 CXXFLAGS := \
 	-std=c++20 \
-	-stdlib=libc++ \
 	-Wall \
 	-O3
 
