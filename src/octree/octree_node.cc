@@ -145,11 +145,6 @@ namespace oLife {
 
 	void OctreeNode::empty() {
 		for (OctreeNode *child : children) {
-			if (child != nullptr)
-				child->empty();
-		}
-
-		for (OctreeNode *child : children) {
 			if (child != nullptr) {
 				if (child->children.size() == 0) {
 					delete child;
