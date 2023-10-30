@@ -83,7 +83,7 @@ namespace oLife {
 				children[child_index]->insert(entity);
 			}
 
-			children.clear();
+			entities.clear();
 		}
 	}
 
