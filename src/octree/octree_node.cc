@@ -162,6 +162,7 @@ namespace oLife {
 		for (OctreeNode *child : octree->root.children)
 			delete child;
 
+		octree->root.entities.clear();
 		octree->root.children.clear();
 	}
 }
