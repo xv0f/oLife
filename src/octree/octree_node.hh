@@ -17,27 +17,26 @@ namespace oLife {
 		bool operator==(const OctreeEntity &other) const;
 	};
 
+	struct OctreeNodeData {
+		Octree *octree;
+
+		std::int32_t x, y, z;
+		std::uint32_t w, h, l;
+
+		std::uint32_t level;
+		std::uint32_t index;
+	};
+
 	class OctreeNode {
 		private:
-			Octree *octree;
-
-			std::uint32_t level;
-			std::uint32_t index;
+			OctreeNodeData *data;
 
 			std::vector<OctreeNode *> children;
 			std::vector<OctreeEntity *> entities;
 
 		public:
-			OctreeNode(Octree *octree, std::uint32_t index, std::uint32_t level = 0);
+			OctreeNode(OctreeNodeData *data);
 			~OctreeNode();
-
-			std::int32_t x();
-			std::int32_t y();
-			std::int32_t z();
-
-			std::uint32_t w();
-			std::uint32_t h();
-			std::uint32_t l();
 
 			void insert(OctreeEntity *entity);
 
