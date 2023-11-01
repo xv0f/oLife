@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 
 #include "octree.hh"
 #include "octree_node.hh"
@@ -21,14 +22,11 @@ namespace oLife {
 	OctreeNode::OctreeNode(OctreeNodeData *data) : data(data) {}
 
 	OctreeNode::~OctreeNode() {
-		for (OctreeNode *child : children)
-			delete child;
-
 		delete data;
 	}
 
-	OctreeNode *OctreeNode::create_node(OctreeNodeData *data) {
-		return new OctreeNode(data);
+	std::unique_ptr<OctreeNode> OctreeNode::create_node(OctreeNodeData *data) {
+		return std::unique_ptr<OctreeNode>(new OctreeNode(data));
 	}
 
 	void OctreeNode::insert(OctreeEntity *entity) {
@@ -51,7 +49,7 @@ namespace oLife {
 			return;
 		}
 
-		entities.push_back(entity);
+		entities.push_back(std::unique_ptr<OctreeEntity>(entity));
 
 		if (entities.size() == std::max((data->w * data->h * data->l) >> 7, 16u) && data->w && data->h && data->l) {
 			for (std::uint32_t index = 0; index < 8; index++)
@@ -71,14 +69,14 @@ namespace oLife {
 					index
 				}));
 			
-			for (OctreeEntity *entity : entities) {
+			for (std::unique_ptr<OctreeEntity> &entity : entities) {
 				std::uint32_t index = 0;
 
 				if (entity->x >= data->x) index |= 1;
 				if (entity->y >= data->y) index |= 2;
 				if (entity->z >= data->z) index |= 4;
 
-				children[index]->insert(entity);
+				children[index]->insert(entity.get());
 			}
 
 			children.clear();
@@ -94,13 +92,13 @@ namespace oLife {
 	}
 
 	void OctreeNode::update() {
-		for (OctreeNode *child : children) {
+		for (std::unique_ptr<OctreeNode> &child : children) {
 			if (child != nullptr)
 				child->update();
 		}
 
 		for (std::size_t i = 0; i < entities.size(); i++) {
-			data->octree->root->insert(entities[i]);
+			data->octree->root->insert(entities[i].get());
 
 			fast_erase(entities, i);
 		}
@@ -112,7 +110,7 @@ namespace oLife {
 		}
 	}
 
-	std::vector<OctreeEntity *> OctreeNode::query(
+	std::vector<std::unique_ptr<OctreeEntity>> OctreeNode::query(
 		std::uint32_t w,
 		std::uint32_t h,
 		std::uint32_t l,
@@ -130,33 +128,33 @@ namespace oLife {
 			return children[index]->query(w, h, l, x_pos, y_pos, z_pos);
 		}
 
-		std::vector<OctreeEntity *> results;
+		std::vector<std::unique_ptr<OctreeEntity>> results;
 
-		std::copy_if(
+		/*std::copy_if(
 			entities.begin(),
 			entities.end(),
 			std::back_inserter(results),
-			[&](OctreeEntity *entity) -> bool {
+			[&](const std::unique_ptr<OctreeEntity> &entity) -> bool {
 				return
 					std::abs(entity->x - x_pos) <= w >> 1 &&
 					std::abs(entity->y - y_pos) <= h >> 1 &&
 					std::abs(entity->z - z_pos) <= l >> 1;
 			}
-		);
+		);*/
 
 		return results;
 	}
 
 	void OctreeNode::empty() {
-		for (OctreeNode *child : children) {
+		for (std::unique_ptr<OctreeNode> &child : children) {
 			if (child != nullptr)
 				child->empty();
 		}
 
-		for (OctreeNode *child : children) {
+		for (std::unique_ptr<OctreeNode> &child : children) {
 			if (child != nullptr) {
 				if (child->children.size() == 0) {
-					delete child;
+					child.reset();
 					continue;
 				}
 
@@ -168,8 +166,8 @@ namespace oLife {
 	}
 
 	void OctreeNode::clear() {
-		for (OctreeNode *child : children)
-			delete child;
+		for (std::unique_ptr<OctreeNode> &child : children)
+			child.reset();
 
 		entities.clear();
 		children.clear();

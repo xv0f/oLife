@@ -6,7 +6,7 @@
 namespace oLife {
 	class Octree {
 		public:
-			OctreeNode *root;
+			std::unique_ptr<OctreeNode> root;
 
 			std::uint32_t w, h, l;
 

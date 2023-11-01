@@ -1,6 +1,7 @@
 #ifndef OLIFE_OCTREE_NODE_HH
 #define OLIFE_OCTREE_NODE_HH
 
+#include <memory>
 #include <cstdint>
 #include <vector>
 
@@ -32,19 +33,19 @@ namespace oLife {
 		private:
 			OctreeNodeData *data;
 
-			std::vector<OctreeNode *> children;
-			std::vector<OctreeEntity *> entities;
+			std::vector<std::unique_ptr<OctreeNode>> children;
+			std::vector<std::unique_ptr<OctreeEntity>> entities;
 
 			OctreeNode(OctreeNodeData *data);
 
 		public:
-			static OctreeNode *create_node(OctreeNodeData *data);
+			static std::unique_ptr<OctreeNode> create_node(OctreeNodeData *data);
 
 			~OctreeNode();
 
 			void insert(OctreeEntity *entity);
 
-			std::vector<OctreeEntity *> query(
+			std::vector<std::unique_ptr<OctreeEntity>> query(
 				std::uint32_t w,
 				std::uint32_t h,
 				std::uint32_t l,

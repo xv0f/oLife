@@ -25,9 +25,5 @@ namespace oLife {
 		h(initial_h),
 		l(initial_l) {}
 
-	Octree::~Octree() {
-		if (root != nullptr) {
-			delete root;
-		}
-	}
+	Octree::~Octree() {};
 }
