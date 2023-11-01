@@ -9,6 +9,7 @@ void fast_erase(std::vector<T> &vector, std::size_t index);
 
 namespace oLife {
 	class Octree;
+	class OctreeNode;
 
 	struct OctreeEntity {
 		std::int32_t x, y, z;
@@ -19,12 +20,12 @@ namespace oLife {
 
 	struct OctreeNodeData {
 		Octree *octree;
+		OctreeNode *parent;
 
 		std::int32_t x, y, z;
 		std::uint32_t w, h, l;
 
-		std::uint32_t level;
-		std::uint32_t index;
+		std::uint32_t level, index;
 	};
 
 	class OctreeNode {
@@ -34,8 +35,11 @@ namespace oLife {
 			std::vector<OctreeNode *> children;
 			std::vector<OctreeEntity *> entities;
 
-		public:
 			OctreeNode(OctreeNodeData *data);
+
+		public:
+			static OctreeNode *create_node(OctreeNodeData *data);
+
 			~OctreeNode();
 
 			void insert(OctreeEntity *entity);

@@ -6,8 +6,9 @@ namespace oLife {
 		std::uint32_t initial_h,
 		std::uint32_t initial_l
 	) :
-		root(new OctreeNode(new OctreeNodeData {
+		root(OctreeNode::create_node(new OctreeNodeData {
 			this,
+			nullptr,
 			
 			0,
 			0,

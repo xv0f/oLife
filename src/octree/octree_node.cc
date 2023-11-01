@@ -27,6 +27,10 @@ namespace oLife {
 		delete data;
 	}
 
+	OctreeNode *OctreeNode::create_node(OctreeNodeData *data) {
+		return new OctreeNode(data);
+	}
+
 	void OctreeNode::insert(OctreeEntity *entity) {
 		if (
 			std::abs(entity->x) > data->octree->w >> 1 &&
@@ -36,13 +40,13 @@ namespace oLife {
 			scale(2);
 
 		if (children.size() != 0) {
-			std::uint32_t child_index = 0;
+			std::uint32_t index = 0;
 
-			if (entity->x >= data->x) child_index |= 1;
-			if (entity->y >= data->y) child_index |= 2;
-			if (entity->z >= data->z) child_index |= 4;
+			if (entity->x >= data->x) index |= 1;
+			if (entity->y >= data->y) index |= 2;
+			if (entity->z >= data->z) index |= 4;
 
-			children[child_index]->insert(entity);
+			children[index]->insert(entity);
 
 			return;
 		}
@@ -50,20 +54,21 @@ namespace oLife {
 		entities.push_back(entity);
 
 		if (entities.size() == std::max((data->w * data->h * data->l) >> 7, 16u) && data->w && data->h && data->l) {
-			for (std::uint32_t i = 0; i < 8; i++)
-				children.push_back(new OctreeNode(new OctreeNodeData {
+			for (std::uint32_t index = 0; index < 8; index++)
+				children.push_back(OctreeNode::create_node(new OctreeNodeData {
 					data->octree,
+					this,
 
-					data->x + static_cast<std::int32_t>(data->w >> 1 * data->index & 1 ? -1 : 1),
-					data->y + static_cast<std::int32_t>(data->h >> 1 * (data->index >> 1) & 1 ? -1 : 1),
-					data->z + static_cast<std::int32_t>(data->h >> 1 * (data->index >> 2) & 1 ? -1 : 1),
+					data->x + static_cast<std::int32_t>(data->w >> 1 * (index & 1 ? -1 : 1)),
+					data->y + static_cast<std::int32_t>(data->h >> 1 * ((index >> 1) & 1 ? -1 : 1)),
+					data->z + static_cast<std::int32_t>(data->h >> 1 * ((index >> 2) & 1 ? -1 : 1)),
 
-					data->octree->w >> data->level,
-					data->octree->h >> data->level,
-					data->octree->l >> data->level,
+					data->octree->w >> (data->level + 1),
+					data->octree->h >> (data->level + 1),
+					data->octree->l >> (data->level + 1),
 
 					data->level + 1,
-					i
+					index
 				}));
 			
 			for (OctreeEntity *entity : entities) {
@@ -98,6 +103,12 @@ namespace oLife {
 			data->octree->root->insert(entities[i]);
 
 			fast_erase(entities, i);
+		}
+
+		if (entities.size() == 0) {
+			fast_erase(data->parent->children, data->index);
+
+			delete this;
 		}
 	}
 
